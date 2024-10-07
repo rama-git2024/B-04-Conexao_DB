@@ -15,7 +15,7 @@ password = os.getenv('DB_PASSWORD')
 # String de conexão com os dados lidos do .env
 connection_string = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}'
 
-path = r"C:\Users\pedro.cecere\Documents\Projetos\B - Jurídico Varejo\B - 04 - Conexão Banco de Dados\teste2.csv"
+path = r"C:\Users\pedro.cecere\Documents\Projetos\B - Jurídico Varejo\B - 04 - Conexão Banco de Dados\teste.csv"
 
 def leitura_banco_de_dados(connection_string):
     df = pd.DataFrame()
@@ -75,8 +75,8 @@ def leitura_planilha(path):
 
 def valida_base(df_bd, df_planilha):
 
-    df_bd['operacao_final'] = df_bd['operacao'].str[-10:]
-    df_planilha['operacao_final'] = df_planilha['operacao'].str[-10:]
+    df_bd['operacao_final'] = df_bd['operacao'].str[-15:]
+    df_planilha['operacao_final'] = df_planilha['operacao'].str[-15:]
 
     df_filtrado = df_planilha[~df_planilha['operacao_final'].isin(df_bd['operacao_final'])]
 
