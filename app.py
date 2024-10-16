@@ -15,7 +15,7 @@ password = os.getenv('DB_PASSWORD')
 # String de conexão com os dados lidos do .env
 connection_string = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}'
 
-path = r"C:\Users\pedro.cecere\Documents\Projetos\B - Jurídico Varejo\B - 04 - Conexão Banco de Dados\teste.csv"
+path = r"C:\Users\pedro.cecere\Documents\Projetos\B - Jurídico Varejo\B - 04 - Conexão Banco de Dados\base.csv"
 
 def leitura_banco_de_dados(connection_string):
     df = pd.DataFrame()
@@ -49,8 +49,6 @@ def leitura_banco_de_dados(connection_string):
         df['operacao'] = df['operacao'].str.replace(' ', '', regex=True)
         
 
-        print(df.head())
-
     except pyodbc.Error as e:
         print("Erro na conexão:", e)
 
@@ -63,20 +61,35 @@ def leitura_banco_de_dados(connection_string):
 
 def leitura_planilha(path):
     if os.path.exists(path):
-
+        # Lê a planilha CSV
         df_planilha = pd.read_csv(path, encoding='latin1', delimiter=';')
-
+        
+        # Remove caracteres não alfanuméricos da coluna 'Nº da Operação'
         df_planilha['operacao'] = df_planilha['Nº da Operação'].str.replace(r'[^a-zA-Z0-9]', '', regex=True)
+        
+        # Palavras a serem excluídas (cria padrão regex com bordas de palavra)
+        palavras_excluir = ['PRONAMPE', 'FGI', 'FOPAG', 'PESE', 'PE']
+        padrao_regex = '|'.join([f'\\b{palavra}\\b' for palavra in palavras_excluir])
+        
+        # Filtra onde 'Nome do Produto' contém as palavras especificadas
+        df_governamental = df_planilha[df_planilha['Nome do Produto'].str.contains(padrao_regex, case=False, regex=True, na=False)]
+        
+        # Salva o resultado filtrado em um arquivo Excel
+        df_governamental.to_excel('operacao_governamental.xlsx', index=False)
 
+        # Filtra o df_planilha para retornar apenas as operações que NÃO CONTÊM as palavras especificadas
+        df_planilha = df_planilha[~df_planilha['Nome do Produto'].str.contains(padrao_regex, case=False, regex=True, na=False)]
+        
         return df_planilha
     else:
         print(f"O arquivo {path} não foi encontrado.")
         return pd.DataFrame()
 
+
 def valida_base(df_bd, df_planilha):
 
-    df_bd['operacao_final'] = df_bd['operacao'].str[-15:]
-    df_planilha['operacao_final'] = df_planilha['operacao'].str[-15:]
+    df_bd['operacao_final'] = df_bd['operacao']
+    df_planilha['operacao_final'] = df_planilha['operacao']
 
     df_filtrado = df_planilha[~df_planilha['operacao_final'].isin(df_bd['operacao_final'])]
 
