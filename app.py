@@ -66,16 +66,10 @@ def leitura_planilha(path):
         
         # Remove caracteres não alfanuméricos da coluna 'Nº da Operação'
         df_planilha['operacao'] = df_planilha['Nº da Operação'].str.replace(r'[^a-zA-Z0-9]', '', regex=True)
-        
+
         # Palavras a serem excluídas (cria padrão regex com bordas de palavra)
         palavras_excluir = ['PRONAMPE', 'FGI', 'FOPAG', 'PESE', 'PE']
         padrao_regex = '|'.join([f'\\b{palavra}\\b' for palavra in palavras_excluir])
-        
-        # Filtra onde 'Nome do Produto' contém as palavras especificadas
-        df_governamental = df_planilha[df_planilha['Nome do Produto'].str.contains(padrao_regex, case=False, regex=True, na=False)]
-        
-        # Salva o resultado filtrado em um arquivo Excel
-        df_governamental.to_excel('operacao_governamental.xlsx', index=False)
 
         # Filtra o df_planilha para retornar apenas as operações que NÃO CONTÊM as palavras especificadas
         df_planilha = df_planilha[~df_planilha['Nome do Produto'].str.contains(padrao_regex, case=False, regex=True, na=False)]
@@ -92,6 +86,16 @@ def valida_base(df_bd, df_planilha):
     df_planilha['operacao_final'] = df_planilha['operacao']
 
     df_filtrado = df_planilha[~df_planilha['operacao_final'].isin(df_bd['operacao_final'])]
+
+    # Palavras a serem excluídas (cria padrão regex com bordas de palavra)
+    palavras_excluir = ['PRONAMPE', 'FGI', 'FOPAG', 'PESE', 'PE']
+    padrao_regex = '|'.join([f'\\b{palavra}\\b' for palavra in palavras_excluir])
+        
+    # Filtra onde 'Nome do Produto' contém as palavras especificadas
+    df_governamental = df_filtrado[df_filtrado['Nome do Produto'].str.contains(padrao_regex, case=False, regex=True, na=False)]
+        
+    # Salva o resultado filtrado em um arquivo Excel
+    df_governamental.to_excel('operacao_governamental.xlsx', index=False)
 
     return df_filtrado
 
